@@ -1,4 +1,4 @@
-sigrok2ega:
+sigrok2ega: sigrok2ega.c
 	$(CC) -O2 -W -Wall sigrok2ega.c -o sigrok2ega -lSDL2
 
 test: sigrok2ega

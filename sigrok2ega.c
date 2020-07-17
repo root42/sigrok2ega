@@ -4,11 +4,10 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_surface.h>
 
-#define IMG_WIDTH 320
-#define IMG_HEIGHT 200
+#define IMG_WIDTH 376
+#define IMG_HEIGHT 247
 
-void
-pset( SDL_Surface *surface,
+void pset( SDL_Surface *surface,
       unsigned int x,
       unsigned int y,
       unsigned char color
@@ -43,8 +42,8 @@ int main()
     "SIGROK2EGA",
     SDL_WINDOWPOS_UNDEFINED,
     SDL_WINDOWPOS_UNDEFINED,
-    320,
-    200,
+    376,
+    247,
     SDL_WINDOW_SHOWN
     );
 
@@ -96,13 +95,17 @@ int main()
 	    }
 	  }
 	}
+	else {
+					
+	}
       }
       continue;
     }
     color1 = value & 0x3F;
-    int x_scaled = 319.0/1070.0*(x-305);
-    if( x_scaled >= 0 && x_scaled < IMG_WIDTH && y < IMG_HEIGHT ) {
-      pset(surface, x_scaled, y, color1);
+    int x_scaled = 319.0/1070.0*(x-184);
+    int y_scaled = y -13;
+    if( x_scaled >= 0 && x_scaled < IMG_WIDTH && y_scaled >= 0 && y_scaled < IMG_HEIGHT ) {
+      pset(surface, x_scaled, y_scaled, color1);
     }
     x++;
     if( hsync ) {
@@ -119,6 +122,6 @@ int main()
 
   SDL_DestroyWindow( window ); 
   SDL_Quit();
-  
+
   return 0;
 }
