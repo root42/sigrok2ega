@@ -5,7 +5,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_surface.h>
 
-#define IMG_WIDTH 376
+#define IMG_WIDTH 420
 #define IMG_HEIGHT 247
 
 void pset( SDL_Surface *surface,
@@ -14,6 +14,9 @@ void pset( SDL_Surface *surface,
       unsigned char color
       )
 {
+  if( x >= IMG_WIDTH || y >= IMG_HEIGHT ) {
+    return;
+  }
   Uint32 pixel =
     (  ((color & (1 << 0)) << 1) + ((color & (1 << 3)) >> 3)) * 0x000055  // R
     + (((color & (1 << 1)) >> 0) + ((color & (1 << 3)) >> 3)) * 0x005500  // G
@@ -86,7 +89,7 @@ int main()
 	  // SDL_SaveBMP(surface, fn);
 	  SDL_BlitSurface(surface, NULL, screen, NULL);
 	  SDL_UpdateWindowSurface(window);
-	  SDL_FillRect(surface, NULL, 0);
+	  // SDL_FillRect(surface, NULL, 0);
 	  SDL_Event e;
 	  if (SDL_PollEvent(&e)) {
 	    if (e.type == SDL_QUIT) {
@@ -99,14 +102,12 @@ int main()
     color1 = value & 0x3F;
     int x_scaled = round(319.0/1070.0*(x-184));
     int y_scaled = y - 13;
-    if( x_scaled >= 0 && x_scaled < IMG_WIDTH && y_scaled >= 0 && y_scaled < IMG_HEIGHT ) {
-      pset(surface, x_scaled, y_scaled, color1);
-    }
+    pset(surface, x_scaled, y_scaled, color1);
     x++;
     if( hsync ) {
       ref_len++;
       if( ref_len > 30 && x > 700 ) {
-	//pset(surface, x, y, 5);
+	pset(surface, x_scaled, y_scaled, 5);
 	y++;
 	x = 0;
       }
