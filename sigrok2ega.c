@@ -65,7 +65,8 @@ int main()
   unsigned int x = 0;
   unsigned int y = 0;
   const int sclk = 24000000;
-  const int pclk = 7159090; //14318180;
+  const int pclk = 7155140; //7159090; //14318180;
+  int phase = 0;
   int erracc = sclk;
   SDL_Window *window;
 
@@ -76,8 +77,8 @@ int main()
     "SIGROK2EGA",
     SDL_WINDOWPOS_UNDEFINED,
     SDL_WINDOWPOS_UNDEFINED,
-    IMG_WIDTH,
-    IMG_HEIGHT,
+    IMG_WIDTH * 2,
+    IMG_HEIGHT * 2,
     SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE
     );
 
@@ -136,7 +137,7 @@ int main()
 	if( !new_frame ) {
 	  new_frame = 1;
 	  frame++;
-	  printf("frame %u\n", frame);
+	  //printf("frame %u\n", frame);
 
 	  SDL_UpdateTexture(tex, NULL, surface->pixels, surface->pitch);
 	  // SDL_RenderClear(ren);
@@ -147,6 +148,22 @@ int main()
 	  if (SDL_PollEvent(&e)) {
 	    if (e.type == SDL_QUIT) {
 	      break;
+	    } else if( e.type == SDL_KEYDOWN ) {
+	      int old_phase = phase;
+	      switch( e.key.keysym.sym )
+	      {
+	      case SDLK_LEFT:
+		phase--;
+		break;
+	      case SDLK_RIGHT:
+		phase++;
+		break;
+	      default:
+		break;
+	      }
+	      if( old_phase != phase ) {
+		printf("%d\n",phase);
+	      }
 	    }
 	  }
 	}
@@ -154,7 +171,7 @@ int main()
     }
     color1 = value & 0x3F;
     if( erracc < 0 ) {
-      erracc += sclk;
+      erracc += sclk + phase;
       pset(surface, x, y, color1);
       x++;
     } else {
@@ -163,7 +180,7 @@ int main()
     if( hsync ) {
       ref_len++;
       if( ref_len > 30 && x > 208 ) {
-	/* pset(surface, x_scaled, y_scaled, 5); */
+	pset(surface, x, y-13, 5);
 	y++;
 	x = 0;
       }
