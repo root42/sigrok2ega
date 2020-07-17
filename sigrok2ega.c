@@ -20,8 +20,27 @@ static const Uint32 bmask = 0x00ff0000;
 static const Uint32 amask = 0xff000000;
 #endif
 
+static Uint32 egapal[64];
+
+void
+init_pal()
+{
+  int i;
+  for( i = 0; i < 64; ++i ) {
+    Uint32 color =
+      (  ((i & (1 << 0)) << 1) + ((i & (1 << 3)) >> 3)) * (0x55555555 & bmask)
+      + (((i & (1 << 1)) >> 0) + ((i & (1 << 3)) >> 3)) * (0x55555555 & gmask)
+      + (((i & (1 << 2)) >> 1) + ((i & (1 << 3)) >> 3)) * (0x55555555 & rmask)
+      + amask
+      ;
+    printf("%xd ", color);
+    egapal[i] = color;
+  }
+}
+
 inline
-void pset(
+void
+pset(
   SDL_Surface *surface,
   unsigned int x,
   unsigned int y,
@@ -31,16 +50,10 @@ void pset(
   if( x >= IMG_WIDTH || y >= IMG_HEIGHT ) {
     return;
   }
-  Uint32 pixel =
-    (  ((color & (1 << 0)) << 1) + ((color & (1 << 3)) >> 3)) * (0x55555555 & bmask)
-    + (((color & (1 << 1)) >> 0) + ((color & (1 << 3)) >> 3)) * (0x55555555 & gmask)
-    + (((color & (1 << 2)) >> 1) + ((color & (1 << 3)) >> 3)) * (0x55555555 & rmask)
-    + amask
-    ;
 
   Uint32 *target_pixel = surface->pixels + y * surface->pitch +
     x * sizeof( *target_pixel );
-  *target_pixel = pixel;
+  *target_pixel = egapal[color];
 }
 
 int main()
@@ -53,6 +66,8 @@ int main()
   unsigned int x = 0, y = 0;
   SDL_Window *window;
 
+  init_pal();
+  
   SDL_Init(SDL_INIT_VIDEO);
   window = SDL_CreateWindow(
     "SIGROK2EGA",
