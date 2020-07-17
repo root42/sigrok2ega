@@ -59,11 +59,14 @@ pset(
 int main()
 {
   int new_frame = 0;
-  unsigned char value, color1;
   int hsync = 0, vsync = 0;
   int frame = 0;
   unsigned int vsyncc = 0, ref_len = 0;
-  unsigned int x = 0, y = 0;
+  unsigned int x = 0;
+  unsigned int y = 0;
+  const int sclk = 24000000;
+  const int pclk = 7159090; //14318180;
+  int erracc = sclk;
   SDL_Window *window;
 
   init_pal();
@@ -117,6 +120,7 @@ int main()
   }
 
   while(!feof(stdin)) {
+    unsigned char value, color1;
     value = getchar_unlocked(); // fgetc(stdin);
     vsync = value & 128;
     hsync = value & 64;
@@ -149,14 +153,16 @@ int main()
       }
     }
     color1 = value & 0x3F;
-    int x_scaled = round(319.0/1070.0*(x-183));
-    int y_scaled = y - 13;
-    pset(surface, x_scaled, y_scaled, color1);
-    x++;
+    erracc -= pclk;
+    if( erracc < 0 ) {
+      erracc = sclk;
+      pset(surface, x, y - 13, color1);
+      x++;
+    }
     if( hsync ) {
       ref_len++;
       if( ref_len > 30 && x > 700 ) {
-	pset(surface, x_scaled, y_scaled, 5);
+	/* pset(surface, x_scaled, y_scaled, 5); */
 	y++;
 	x = 0;
       }
