@@ -97,7 +97,7 @@ int main()
       }
     }
     color1 = value & 0x3F;
-    int x_scaled = 319.0/1070.0*(x-184);
+    int x_scaled = round(319.0/1070.0*(x-184));
     int y_scaled = y - 13;
     if( x_scaled >= 0 && x_scaled < IMG_WIDTH && y_scaled >= 0 && y_scaled < IMG_HEIGHT ) {
       pset(surface, x_scaled, y_scaled, color1);
@@ -115,7 +115,7 @@ int main()
     }
   }
 
-  SDL_DestroyWindow( window ); 
+  SDL_DestroyWindow( window );
   SDL_Quit();
 
   return 0;
