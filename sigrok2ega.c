@@ -171,7 +171,7 @@ int main()
     }
     color1 = value & 0x3F;
     if( erracc < 0 ) {
-      erracc += sclk + phase;
+      erracc += sclk;
       pset(surface, x, y, color1);
       x++;
     } else {
@@ -182,6 +182,7 @@ int main()
       if( ref_len > 30 && x > 208 ) {
 	pset(surface, x, y-13, 5);
 	y++;
+	erracc = sclk + phase;
 	x = 0;
       }
     } else {
