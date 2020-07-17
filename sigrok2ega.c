@@ -8,24 +8,38 @@
 #define IMG_WIDTH 420
 #define IMG_HEIGHT 247
 
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+static const Uint32 rmask = 0xff000000;
+static const Uint32 gmask = 0x00ff0000;
+static const Uint32 bmask = 0x0000ff00;
+static const Uint32 amask = 0x000000ff;
+#else
+static const Uint32 rmask = 0x000000ff;
+static const Uint32 gmask = 0x0000ff00;
+static const Uint32 bmask = 0x00ff0000;
+static const Uint32 amask = 0xff000000;
+#endif
+
 inline
-void pset( SDL_Surface *surface,
-      unsigned int x,
-      unsigned int y,
-      unsigned char color
-      )
+void pset(
+  SDL_Surface *surface,
+  unsigned int x,
+  unsigned int y,
+  unsigned char color
+  )
 {
   if( x >= IMG_WIDTH || y >= IMG_HEIGHT ) {
     return;
   }
   Uint32 pixel =
-    (  ((color & (1 << 0)) << 1) + ((color & (1 << 3)) >> 3)) * 0x000055  // R
-    + (((color & (1 << 1)) >> 0) + ((color & (1 << 3)) >> 3)) * 0x005500  // G
-    + (((color & (1 << 2)) >> 1) + ((color & (1 << 3)) >> 3)) * 0x550000  // B
+    (  ((color & (1 << 0)) << 1) + ((color & (1 << 3)) >> 3)) * (0x55555555 & bmask)
+    + (((color & (1 << 1)) >> 0) + ((color & (1 << 3)) >> 3)) * (0x55555555 & gmask)
+    + (((color & (1 << 2)) >> 1) + ((color & (1 << 3)) >> 3)) * (0x55555555 & rmask)
+    + amask
     ;
 
   Uint32 *target_pixel = surface->pixels + y * surface->pitch +
-    x * sizeof *target_pixel;
+    x * sizeof( *target_pixel );
   *target_pixel = pixel;
 }
 
@@ -46,30 +60,49 @@ int main()
     SDL_WINDOWPOS_UNDEFINED,
     IMG_WIDTH,
     IMG_HEIGHT,
-    SDL_WINDOW_SHOWN
+    SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE
     );
 
-  // Check that the window was successfully created
   if (window == NULL) {
-    // In the case that the window could not be made...
-    printf("Could not create window: %s\n", SDL_GetError());
+    SDL_Log( "Could not create window: %s", SDL_GetError());
+    SDL_Quit();
+    return 1;
+  }
+
+  SDL_Renderer *ren = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+  if (ren == NULL) {
+    SDL_DestroyWindow( window );
+    SDL_Log( "SDL_CreateRenderer Error: %s", SDL_GetError());
+    SDL_Quit();
     return 1;
   }
 
   SDL_Surface *surface =
-    SDL_CreateRGBSurface(0, IMG_WIDTH, IMG_HEIGHT, 32, 0, 0, 0, 0);
+    SDL_CreateRGBSurface(
+      0,
+      IMG_WIDTH,
+      IMG_HEIGHT,
+      32,
+      rmask,
+      gmask,
+      bmask,
+      amask
+      );
   if (surface == NULL) {
     SDL_Log("SDL_CreateRGBSurface() failed: %s", SDL_GetError());
-    exit(1);
+    SDL_Quit();
+    return 1;
   }
-  SDL_Surface *screen = SDL_GetWindowSurface(window);
-  if (screen == NULL) {
-    SDL_Log("SDL_GetWindowSurface() failed: %s", SDL_GetError());
-    exit(1);
+
+  SDL_Texture *tex = SDL_CreateTextureFromSurface(ren, surface);
+  if( tex == NULL ) {
+    SDL_Log( "SDL_CreateTextueFromSurface() failed: %s", SDL_GetError());
+    SDL_Quit();
+    return 1;
   }
 
   while(!feof(stdin)) {
-    value = fgetc(stdin);
+    value = getchar_unlocked(); // fgetc(stdin);
     vsync = value & 128;
     hsync = value & 64;
     if( vsync == 0 ) {
@@ -85,12 +118,12 @@ int main()
 	  new_frame = 1;
 	  frame++;
 	  printf("frame %u\n", frame);
-	  // char fn[255];
-	  // snprintf(fn, 255, "public_html/public/ega-%u.bmp", frame);
-	  // SDL_SaveBMP(surface, fn);
-	  SDL_BlitSurface(surface, NULL, screen, NULL);
-	  SDL_UpdateWindowSurface(window);
-	  // SDL_FillRect(surface, NULL, 0);
+
+	  SDL_UpdateTexture(tex, NULL, surface->pixels, surface->pitch);
+	  // SDL_RenderClear(ren);
+	  SDL_RenderCopy(ren, tex, NULL, NULL);
+	  SDL_RenderPresent(ren);
+
 	  SDL_Event e;
 	  if (SDL_PollEvent(&e)) {
 	    if (e.type == SDL_QUIT) {
