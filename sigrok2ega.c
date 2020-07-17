@@ -8,6 +8,7 @@
 #define IMG_WIDTH 420
 #define IMG_HEIGHT 247
 
+inline
 void pset( SDL_Surface *surface,
       unsigned int x,
       unsigned int y,
@@ -100,7 +101,7 @@ int main()
       }
     }
     color1 = value & 0x3F;
-    int x_scaled = round(319.0/1070.0*(x-184));
+    int x_scaled = round(319.0/1070.0*(x-183));
     int y_scaled = y - 13;
     pset(surface, x_scaled, y_scaled, color1);
     x++;
