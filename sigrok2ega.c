@@ -65,8 +65,10 @@ int main()
   unsigned int x = 0;
   unsigned int y = 0;
   const int sclk = 24000000;
-  const int pclk = 7155140; //7159090; //14318180;
-  int phase = 0;
+  int pclk = 7155140;
+  //int pclk = 7159090;
+  //int pclk = 14318180;
+  int phase = -100;
   int erracc = sclk;
   SDL_Window *window;
 
@@ -140,7 +142,7 @@ int main()
 	  //printf("frame %u\n", frame);
 
 	  SDL_UpdateTexture(tex, NULL, surface->pixels, surface->pitch);
-	  // SDL_RenderClear(ren);
+	  SDL_RenderClear(ren);
 	  SDL_RenderCopy(ren, tex, NULL, NULL);
 	  SDL_RenderPresent(ren);
 
@@ -150,19 +152,29 @@ int main()
 	      break;
 	    } else if( e.type == SDL_KEYDOWN ) {
 	      int old_phase = phase;
+	      int old_pclk = pclk;
 	      switch( e.key.keysym.sym )
 	      {
 	      case SDLK_LEFT:
-		phase--;
+		phase-=1000;
 		break;
 	      case SDLK_RIGHT:
-		phase++;
+		phase+=1000;
+		break;
+	      case SDLK_UP:
+		pclk-=1000;
+		break;
+	      case SDLK_DOWN:
+		pclk+=1000;
 		break;
 	      default:
 		break;
 	      }
 	      if( old_phase != phase ) {
-		printf("%d\n",phase);
+		printf("phase %d\n",phase);
+	      }
+	      if( old_pclk != pclk ) {
+		printf("pclk %d\n",pclk);
 	      }
 	    }
 	  }
@@ -181,6 +193,7 @@ int main()
       ref_len++;
       if( ref_len > 30 && x > 208 ) {
 	pset(surface, x, y-13, 5);
+	pset(surface, x+1, y-13, 0);
 	y++;
 	erracc = sclk + phase;
 	x = 0;
