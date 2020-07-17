@@ -5,8 +5,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_surface.h>
 
-#define IMG_WIDTH 420
-#define IMG_HEIGHT 247
+#define IMG_WIDTH 380
+#define IMG_HEIGHT 280
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 static const Uint32 rmask = 0xff000000;
@@ -153,15 +153,16 @@ int main()
       }
     }
     color1 = value & 0x3F;
-    erracc -= pclk;
     if( erracc < 0 ) {
-      erracc = sclk;
-      pset(surface, x, y - 13, color1);
+      erracc += sclk;
+      pset(surface, x, y, color1);
       x++;
+    } else {
+      erracc -= pclk;
     }
     if( hsync ) {
       ref_len++;
-      if( ref_len > 30 && x > 700 ) {
+      if( ref_len > 30 && x > 208 ) {
 	/* pset(surface, x_scaled, y_scaled, 5); */
 	y++;
 	x = 0;
