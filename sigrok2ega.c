@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -32,18 +33,15 @@ int main()
   int frame = 0;
   unsigned int vsyncc = 0, ref_len = 0;
   unsigned int x = 0, y = 0;
+  SDL_Window *window;
 
-  SDL_Window *window;                    // Declare a pointer
-
-  SDL_Init(SDL_INIT_VIDEO);              // Initialize SDL2
-
-  // Create an application window with the following settings:
+  SDL_Init(SDL_INIT_VIDEO);
   window = SDL_CreateWindow(
     "SIGROK2EGA",
     SDL_WINDOWPOS_UNDEFINED,
     SDL_WINDOWPOS_UNDEFINED,
-    376,
-    247,
+    IMG_WIDTH,
+    IMG_HEIGHT,
     SDL_WINDOW_SHOWN
     );
 
@@ -88,6 +86,7 @@ int main()
 	  // SDL_SaveBMP(surface, fn);
 	  SDL_BlitSurface(surface, NULL, screen, NULL);
 	  SDL_UpdateWindowSurface(window);
+	  SDL_FillRect(surface, NULL, 0);
 	  SDL_Event e;
 	  if (SDL_PollEvent(&e)) {
 	    if (e.type == SDL_QUIT) {
@@ -95,15 +94,11 @@ int main()
 	    }
 	  }
 	}
-	else {
-					
-	}
       }
-      continue;
     }
     color1 = value & 0x3F;
     int x_scaled = 319.0/1070.0*(x-184);
-    int y_scaled = y -13;
+    int y_scaled = y - 13;
     if( x_scaled >= 0 && x_scaled < IMG_WIDTH && y_scaled >= 0 && y_scaled < IMG_HEIGHT ) {
       pset(surface, x_scaled, y_scaled, color1);
     }
