@@ -22,6 +22,11 @@ static const Uint32 amask = 0xff000000;
 
 static Uint32 egapal[64];
 
+static int comp(const void* a, const void* b)
+{
+  return *(Uint32 *)a < *(Uint32 *)b;
+}
+
 void
 init_pal()
 {
@@ -64,13 +69,18 @@ int main()
   unsigned int vsyncc = 0, ref_len = 0;
   unsigned int x = 0;
   unsigned int y = 0;
-  const int sclk = 24000000;
-  int pclk = 7155140;
-  //int pclk = 7159090;
+  const double sclk = 24000000;
+  //double pclk = 0.298130841121; //0.298295416667;
+  //int pclk = 7155140;
+  double pclk = 7159090;
   //int pclk = 14318180;
-  int phase = -100;
-  int erracc = sclk;
+  double phase = 0;
+  double erracc = sclk;
   SDL_Window *window;
+
+  const int MEDIAN_SIZE = 5;
+  Uint32 median[MEDIAN_SIZE];
+  int sample_number = 0;
 
   init_pal();
   
@@ -156,25 +166,25 @@ int main()
 	      switch( e.key.keysym.sym )
 	      {
 	      case SDLK_LEFT:
-		phase-=1000;
+		phase-=0.1000000;
 		break;
 	      case SDLK_RIGHT:
-		phase+=1000;
+		phase+=0.1000000;
 		break;
 	      case SDLK_UP:
-		pclk-=1000;
+		pclk-=0.0001;
 		break;
 	      case SDLK_DOWN:
-		pclk+=1000;
+		pclk+=0.0001;
 		break;
 	      default:
 		break;
 	      }
 	      if( old_phase != phase ) {
-		printf("phase %d\n",phase);
+		printf("phase %f\n",phase);
 	      }
 	      if( old_pclk != pclk ) {
-		printf("pclk %d\n",pclk);
+		printf("pclk %f\n",pclk);
 	      }
 	    }
 	  }
@@ -182,9 +192,20 @@ int main()
       }
     }
     color1 = value & 0x3F;
+    median[ sample_number % MEDIAN_SIZE ] = color1;
+    sample_number++;
     if( erracc < 0 ) {
       erracc += sclk;
-      pset(surface, x, y, color1);
+      Uint32 median2[ MEDIAN_SIZE ] = {
+	median[ 0 ],
+	median[ 1 ],
+	median[ 2 ],
+	median[ 3 ],
+	median[ 4 ]
+      };
+      qsort(median2, MEDIAN_SIZE, sizeof(Uint32), comp);
+      pset(surface, x, y, median2[MEDIAN_SIZE / 2]);
+      //pset(surface, x, y, color1);
       x++;
     } else {
       erracc -= pclk;
